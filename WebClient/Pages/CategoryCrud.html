@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="../Scripts/jquery-3.0.0.js"></script>
+    <script src="../Scripts/bootstrap.js"></script>
+    <link href="../Content/bootstrap.css" rel="stylesheet" />
+
+    <style>
+        .genislik {
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                ID=> <input type="text" id="txtID" class="form-control genislik" /> <br />
+                Name=> <input type="text" id="txtName" class="form-control genislik" /> <br />
+                Description => <input type="text" id="txtDesc" class="form-control genislik" /> <br />
+
+                <input type="button" id="btnGetAll" class="btn btn-success" value="Kategorileri Getir" />
+
+                <input type="button" id="getByID" class="btn btn-primary" value="ID'ye Gore Getir" /> <br /> <br />
+
+                <button class="btn btn-info" id="addCategory">Kategori Ekle</button>
+                <button class="btn btn-danger" id="deleteCategory">Kategori Sil</button>
+                <button class="btn btn-warning" id="updateCategory">Kategori Guncelle</button>
+
+            </div>
+
+            <div class="col-md-6">
+                <table id="tab1" class="table table-hover">
+                    <tr>
+                        <th>Kategori ID</th>
+                        <th>Kategori Ismi</th>
+                        <th>Kategori Aciklamasi</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //http://localhost:52232/api/Category/
+
+        //Tablo baslıklarının dısında tüm trleri silen fonksiyonumuz
+        function BaslikKontrol() {
+            //Alttaki ifade önce tab1 id'li elemanı yakalıyor. (Tablomuz). Baslıklar dısındaki (ilk tr dısındaki) tr'leri alıyor(greaterthan(0) komutu ile) tr:gt(0) => Table row must be greater than index 0. 0. indeks'ten büyük olan indeks'teki trleri yakalıyor sonra onları siliyor.
+            $("#tab1").find("tr:gt(0)").remove();
+        }
+
+
+        //Veri listesini getiren fonksiyonumuz
+
+        function VerileriGetir(gelenVeri)
+        {
+            BaslikKontrol();
+            $.each(gelenVeri, function (key, data) {
+                $("#tab1").append("<tr> <td>"+data.ID+" </td> <td>"+data.Name+" </td> <td>"+data.Description+" </td>  </tr>");
+            })
+        }
+
+        //ID'ye göre tekil veri getiren fonksiyonumuz
+
+        function VeriGetir(veri)
+        {
+            BaslikKontrol();
+            $("#tab1").append("<tr> <td>" + veri.ID + " </td> <td>" + veri.Name + " </td> <td>" + veri.Description + " </td>  </tr>");
+        }
+
+        //Ajax İşlemleri
+        $(function () {
+
+            //Kategorileri Getiren Görev
+
+            $("#btnGetAll").click(function ()
+            {
+                $.ajax({
+                    url: "http://localhost:52232/api/Category/GetAllCategories", //istekte bulunacagımız url
+                    type: "Get", //istekte bulunacagımız yöntem
+                    success: function (liste) {
+                        VerileriGetir(liste);
+                    } //istek basarılı bir şekilde gercekleştiginde calısacak ifade...
+                })
+
+
+
+            })
+
+
+            //Kategori Getiren Gorev
+            $("#getByID").click(function () {
+                var yazilanID = $("#txtID").val(); //val() ifadesi kontrolün üzerindeki yazıyı getirir
+
+                $.ajax({
+                    url: "http://localhost:52232/api/Category/GetCategory",
+                    type: "Get",
+                    data: { id: yazilanID }, //data ,yaptıgımız request'te ilgili Action'a veri gönderir.
+                    success: function (gelenVeri) {
+                        VeriGetir(gelenVeri);
+                    }
+                })
+            })
+
+
+            //Post(Ekleme İşlemi)
+
+            $("#addCategory").click(function () {
+                $.ajax({
+                    type: "Post",
+                    url: "http://localhost:52232/api/Category/AddCategories",
+                    data: { CategoryName: $("#txtName").val(), Description: $("#txtDesc").val() },
+                    success: function (veri) {
+                        VerileriGetir(veri);
+                    }
+                })
+            })
+
+
+            //Delete(Silme işlemi)
+            $("#deleteCategory").click(function () {
+                //Delete yönteminde siz Ajax icerisinde asla data parametresiyle bir veri yollayamazsınız
+                var id = $("#txtID").val();
+                $.ajax({
+                    type: "Delete",
+                    url: "http://localhost:52232/api/Category/DeleteCategory/" + id,
+                    success: function (gelenVeri) {
+                        VerileriGetir(gelenVeri);
+                    }
+                })
+            })
+
+            //Update (Güncelleme İşlemi)
+            $("#updateCategory").click(function () {
+                var id = $("#txtID").val();
+                var name = $("#txtName").val();
+                var description = $("#txtDesc").val();
+
+                $.ajax({
+                    url: "http://localhost:52232/api/Category/UpdateCategories",
+                    type: "Put",
+                    data: { CategoryID: id, CategoryName: name, Description: description },
+                    success: function (gelenVeri) {
+                        VerileriGetir(gelenVeri);
+                    }
+
+                })
+            })
+
+
+
+
+
+
+        })
+
+
+
+    </script>
+
+</body>
+</html>
